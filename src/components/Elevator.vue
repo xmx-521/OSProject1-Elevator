@@ -1,20 +1,27 @@
 <template>
-
-    <div class="elevator left">
+    <div class="bg-green-50 shadow-2xl elevator left">
         <div class="elevatorBoarderLeft left">
             <div v-for="count in this.floorNum" :key="count" class="floorNumber">{{this.floorNum+1-count}}</div>
         </div>
-        <div class="floor inline">
-            <div class="door left"></div>
-            <div class="door left"></div>
-        </div>
+        <transition>
+            <div class="floor left">
+                <div class="door left"></div>
+                <div class="door right"></div>
+            </div>
+        </transition>
         <div class="elevatorBoarderRight right">
             <div v-for="count in this.floorNum/2" :key="count">
-                <el-button type="primary" size="mini">{{this.floorNum+1-count*2}}</el-button>
-                <el-button type="primary" size="mini">{{this.floorNum+2-count*2}}</el-button>
+                <el-button v-for="count2 in 2" :key="count2" type="primary" size="mini" class="bg-green-50 black-font"
+                    circle @click="changeFloor(this.floorNum+count2-count*2)">{{this.floorNum+count2-count*2}}
+                </el-button>
+            </div>
+            <div>
+                <el-button type="success" icon="el-icon-phone" circle></el-button>
+                <el-button type="danger" icon="el-icon-message-solid" circle></el-button>
             </div>
         </div>
     </div>
+
 
 </template>
 
@@ -23,28 +30,60 @@
         name: 'Elevator',
         props: {
             floorNum: Number
+        },
+        data() {
+            return {
+                currentFloor: 1,
+                goalFloor: 1,
+                topGap: "570px"
+            }
+        },
+        methods: {
+            moveFloor() {
+                let start = Date.now();
+                let changeFloor = this.goalFloor - this.currentFloor;
+                let vueTimer = setInterval(() => {
+                    let timePassed = Date.now() - start;
+                    if (timePassed >= Math.abs(changeFloor) * 500) {
+                        clearInterval(vueTimer);
+                        this.currentFloor = this.goalFloor;
+                        return;
+                    }
+                    this.topGap = `${((this.floorNum - this.currentFloor) - changeFloor * (timePassed / (Math.abs(
+                        changeFloor) * 500))) * 30}px`
+                }, 20)
+            },
+            changeFloor(floorNum) {
+                this.goalFloor = floorNum;
+                this.moveFloor()
+            },
+            testMethod() {
+                this.topGap = 300;
+            }
         }
     }
 </script>
 
 <style>
     .elevator {
-        width: 290px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, .12), 0 0 6px rgba(0, 0, 0, .04);
+        border: 1px solid pink;
+        width: 230px;
         height: 600px;
-        border-style: solid;
-        margin-inline: 30px;
+        margin-right: 50px;
         margin-bottom: 50px;
-
     }
 
     .elevatorBoarderLeft {
-        background-color: #303133;
+        --tw-bg-opacity: 1;
+        background-color: rgba(252, 231, 243, var(--tw-bg-opacity));
         width: 30px;
         height: 600px;
     }
 
     .elevatorBoarderRight {
-        background-color: #303133;
+        --tw-bg-opacity: 1;
+        background-color: rgba(252, 231, 243, var(--tw-bg-opacity));
         width: 120px;
         height: 600px;
     }
@@ -74,21 +113,24 @@
     }
 
     .door {
-        background-color: #606266;
-        width: 50px;
+        --tw-bg-opacity: 1;
+        background-color: rgba(165, 180, 252, var(--tw-bg-opacity));
+        width: 20px;
         height: 30px;
     }
 
     .floor {
-        background-color: #909399;
-        width: 140px;
+        --tw-bg-opacity: 1;
+        background-color: rgba(224, 231, 255, var(--tw-bg-opacity));
+        width: 80px;
         height: 30px;
+        margin-top: v-bind(topGap);
     }
 
     .floorNumber {
         width: 30px;
         height: 30px;
-        color: white;
+        color: #606266;
         font-size: 16px;
         text-align: center;
         line-height: center;
@@ -96,7 +138,16 @@
 
     .el-button {
         width: 45px;
-        height: 40px;
-        margin-top: 9px;
+        height: 45px;
+        margin-top: 8px;
+    }
+
+    .bg-green-50 {
+        --tw-bg-opacity: 1;
+        background-color: rgba(236, 253, 245, var(--tw-bg-opacity));
+    }
+
+    .black-font {
+        color: #606266
     }
 </style>
