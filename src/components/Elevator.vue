@@ -2,13 +2,13 @@
     <div class="left">
         <div class="indicateLight" :class="indicateLightStyle">
             <div class="floorInfo">
-                <div class="el-icon-top left arrow leftArrow" :class="arrowStyle(1)">
+                <div class="el-icon-caret-top left arrow leftArrow" :class="arrowStyle(1)">
 
                 </div>
                 <div class="left currentFloor">
                     {{this.currentFloor}}F
                 </div>
-                <div class="el-icon-bottom right arrow rightArrow" :class="arrowStyle(-1)">
+                <div class="el-icon-caret-bottom right arrow rightArrow" :class="arrowStyle(-1)">
 
                 </div>
             </div>
