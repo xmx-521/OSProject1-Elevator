@@ -1,25 +1,42 @@
 <template>
-    <div></div>
-    <div class="bg-gray-100 shadow-2xl elevatorInside left">
-        <div class="elevatorBoarderLeft left">
-            <div v-for="count in this.floorNum" :key="count" class="floorNumber"
-                :class="numberBackground(this.floorNum+1-count)">
-                {{this.floorNum+1-count}}</div>
-        </div>
-        <div class="floor left bg-gray-400" :style="{'margin-top':topGap}">
-            <div class="door left " :style="{'margin-left':doorGap}"></div>
-            <div class="door right" :style="{'margin-right':doorGap}"></div>
-        </div>
-        <div class="elevatorBoarderRight right">
-            <div v-for="count in this.floorNum/2" :key="count">
-                <el-button v-for="count2 in 2" :key="count2" size="mini" type="primary"
-                    :class="buttonBackground(this.floorNum+count2-count*2-1)" circle
-                    @click="selectFloor(this.floorNum+count2-count*2,$event)">{{this.floorNum+count2-count*2}}
-                </el-button>
+    <div class="left">
+        <div class="indicateLight" :class="indicateLightStyle">
+            <div class="floorInfo">
+                <div class="el-icon-top left arrow leftArrow" :class="arrowStyle(1)">
+
+                </div>
+                <div class="left currentFloor">
+                    {{this.currentFloor}}F
+                </div>
+                <div class="el-icon-bottom right arrow rightArrow" :class="arrowStyle(-1)">
+
+                </div>
             </div>
-            <div>
-                <el-button type="success" icon="el-icon-phone" circle></el-button>
-                <el-button type="danger" icon="el-icon-message-solid" circle></el-button>
+            <div :class="indicateLightStyle">
+                {{this.isBusy?"忙碌":"空闲"}}
+            </div>
+        </div>
+        <div class="bg-gray-100 shadow-2xl elevatorInside left">
+            <div class="elevatorBoarderLeft left">
+                <div v-for="count in this.floorNum" :key="count" class="floorNumber"
+                    :class="numberBackground(this.floorNum+1-count)">
+                    {{this.floorNum+1-count}}</div>
+            </div>
+            <div class="floor left bg-gray-400" :style="{'margin-top':topGap}">
+                <div class="door left " :style="{'margin-left':doorGap}"></div>
+                <div class="door right" :style="{'margin-right':doorGap}"></div>
+            </div>
+            <div class="elevatorBoarderRight right">
+                <div v-for="count in this.floorNum/2" :key="count">
+                    <el-button v-for="count2 in 2" :key="count2" size="mini" type="primary"
+                        :class="buttonBackground(this.floorNum+count2-count*2-1)" circle
+                        @click="selectFloor(this.floorNum+count2-count*2,$event)">{{this.floorNum+count2-count*2}}
+                    </el-button>
+                </div>
+                <div>
+                    <el-button type="success" icon="el-icon-phone" circle></el-button>
+                    <el-button type="danger" icon="el-icon-message-solid" circle></el-button>
+                </div>
             </div>
         </div>
     </div>
@@ -40,7 +57,7 @@
             return {
                 currentFloor: 1,
                 topGapNumber: 570,
-                doorGapNumber: 18.5,
+                doorGapNumber: 19.5,
                 selectedFloor: [...Array(20)].map(() => false),
                 moveDirection: 1
             }
@@ -61,6 +78,13 @@
             },
             doorGap() {
                 return `${this.doorGapNumber}px`
+            },
+            indicateLightStyle() {
+                if (this.isBusy) {
+                    return "busy";
+                } else {
+                    return "free";
+                }
             }
         },
         mounted() {
@@ -155,7 +179,7 @@
             closeTheDoor() {
                 setTimeout(() => {
                     let vueTimer = setInterval(() => {
-                        if (this.doorGapNumber >= 18.5) {
+                        if (this.doorGapNumber >= 19.5) {
                             clearInterval(vueTimer);
                             this.selectedFloor[this.currentFloor - 1] = false
                             if (this.isBusy === false) {
@@ -184,6 +208,14 @@
 
             numberBackground(floor) {
                 return this.currentFloor === floor ? "blue" : "bogus"
+            },
+
+            arrowStyle(direction) {
+                if (this.isBusy && direction === this.moveDirection) {
+                    return "arrowSelected";
+                } else {
+                    return "arrowUnSelected";
+                }
             }
         }
     }
@@ -191,8 +223,8 @@
 
 <style>
     .elevatorInside {
-        box-shadow: 0 2px 4px rgba(0, 0, 0, .12), 0 0 6px rgba(0, 0, 0, .04);
-        border: 2px solid black;
+        --tw-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
         width: 230px;
         height: 600px;
         margin-right: 50px;
@@ -245,14 +277,13 @@
 
     .door {
         background-color: black;
-        width: 19px;
-        height: 26px;
+        width: 20px;
+        height: 30px;
     }
 
     .floor {
-        width: 76px;
-        height: 26px;
-        border: 2px solid black;
+        width: 80px;
+        height: 30px;
     }
 
     .floorNumber {
@@ -296,7 +327,61 @@
         color: #606266
     }
 
-    /* .indicateLight {
-        background-color: ;
-    } */
+    .indicateLight {
+        --tw-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
+        width: 230px;
+        height: 100px;
+        color: white;
+        line-height: 50px;
+        font-size: 25px;
+    }
+
+
+    .floorInfo {
+        width: 230px;
+        height: 50px;
+    }
+
+    .arrow {
+        line-height: 50px;
+    }
+
+    .leftArrow {
+        margin-left: 60px;
+    }
+
+    .rightArrow {
+        margin-right: 60px;
+    }
+
+    .currentFloor {
+        margin-left: 16px;
+    }
+
+    .arrowSelected {
+        color: white;
+    }
+
+    .arrowUnSelected {
+        color: #606266
+    }
+
+
+    .free {
+        background-image: linear-gradient(to right, var(--tw-gradient-stops));
+        --tw-gradient-from: #34d399;
+        --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgba(52, 211, 153, 0));
+        --tw-gradient-stops: var(--tw-gradient-from), #34d399, var(--tw-gradient-to, rgba(52, 211, 153, 0));
+        --tw-gradient-to: #a7f3d0;
+    }
+
+    .busy {
+        background-image: linear-gradient(to right, var(--tw-gradient-stops));
+        --tw-gradient-from: #f59e0b;
+        --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgba(245, 158, 11, 0));
+        --tw-gradient-stops: var(--tw-gradient-from), #ef4444, var(--tw-gradient-to, rgba(239, 68, 68, 0));
+        --tw-gradient-to: #ec4899;
+
+    }
 </style>
