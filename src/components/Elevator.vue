@@ -11,8 +11,8 @@
         </transition>
         <div class="elevatorBoarderRight right">
             <div v-for="count in this.floorNum/2" :key="count">
-                <el-button v-for="count2 in 2" :key="count2" type="primary" size="mini" class="bg-green-50 black-font"
-                    circle @click="selectFloor(this.floorNum+count2-count*2)">{{this.floorNum+count2-count*2}}
+                <el-button v-for="count2 in 2" :key="count2" size="mini" class="bg-green-50 black-font" circle
+                    @click="selectFloor(this.floorNum+count2-count*2)">{{this.floorNum+count2-count*2}}
                 </el-button>
             </div>
             <div>
@@ -37,21 +37,12 @@
         data() {
             return {
                 currentFloor: 1,
-                goalFloor: 1,
                 topGapNumber: 570,
-                selectedFloor: [...Array(20)].map(() => false)
+                selectedFloor: [...Array(20)].map(() => false),
+                moveDirection: 1
             }
         },
         computed: {
-            moveDirection() {
-                if (this.currentFloor === this.goalFloor || this.goalFloor == -1) {
-                    return 0;
-                } else if (this.currentFloor > this.goalFloor) {
-                    return -1;
-                } else {
-                    return 1;
-                }
-            },
             isBusy() {
                 let allUnSelected = true;
                 for (let i = 0; i < this.floorNum; i++) {
@@ -74,69 +65,78 @@
             selectFloor(floor) {
                 if (this.isBusy === false) {
                     this.selectedFloor[floor - 1] = true;
-                    this.run();
+                    this.moveOneFloor();
                 } else {
                     this.selectedFloor[floor - 1] = true;
                 }
             },
-            getNextGoal() {
-                if (this.isBusy === false) { // Elevator is free.
-                    return -1; // bogus.
-                } else if (this.moveDirection === 0) { // Elevator is not free but stable.
-                    for (let i = 0; i < this.floorNum; i++) {
-                        if (this.selectedFloor[i] === true) {
-                            return i + 1;
+            moveOneFloor() {
+                this.computeMoveDirection()
+                if (this.selectedFloor[this.currentFloor - 1] === true) {
+                    this.openTheDoor()
+                } else {
+
+                    // Animation.
+                    let vueTimer = setInterval(() => {
+
+                        // If we arrive at another floor.
+                        if (this.arriveAnotherFloor()) {
+                            clearInterval(vueTimer);
+                            this.currentFloor = this.currentFloor + this.moveDirection;
+                            console.log(this.currentFloor);
+                            // If there is a request on this floor.
+                            if (this.selectedFloor[this.currentFloor - 1] === true) {
+                                this.openTheDoor()
+                            } else {
+                                this.moveOneFloor()
+                            }
                         }
-                    }
-                } else if (this.moveDirection === 1) { // Elevator is moving up.
-                    for (let i = this.currentFloor - 1; i < this.floorNum; i++) {
-                        if (this.selectedFloor[i] === true) {
-                            return i + 1;
-                        }
-                    }
-                } else { // Elevator is moving down.
-                    for (let i = 0; i < this.currentFloor; i++) {
-                        if (this.selectedFloor[i] === true) {
-                            return i + 1;
-                        }
-                    }
+
+                        // Update floor position.
+                        this.topGapNumber = this.topGapNumber - this.moveDirection;
+                        // console.log(this.moveDirection)
+                        // console.log(this.topGapNumber)
+                    }, 20)
                 }
             },
-            run() {
-                this.goalFloor = this.getNextGoal();
-                let start = Date.now();
-                let vueTimer = setInterval(() => {
-                    let timePassed = Date.now() - start;
-                    if ((this.moveDirection === 1 && this.topGapNumber <= this.getTopGap(this.goalFloor)) || (
-                            this
-                            .moveDirection === -1 && this.topGapNumber >= this.getTopGap(this.goalFloor))) {
-                        clearInterval(vueTimer);
-                        setTimeout(() => {
-                            this.selectedFloor[this.goalFloor - 1] = false
-                            this.updateCurrentAndGoal()
-                            if (this.isBusy === false) {
-                                return;
-                            } else {
-                                this.run()
-                            }
-                            return;
-                        }, 2000)
-                    }
-                    this.topGapNumber = this.getTopGap(this.currentFloor) - this.moveDirection * timePassed /
-                        10;
-                }, 20)
-            },
-            changeFloor(floorNum) {
-                this.goalFloor = floorNum;
-                this.moveFloor();
+            arriveAnotherFloor() {
+                return ((this.moveDirection === 1 && this.topGapNumber <= this.getTopGap(this.currentFloor + 1)) || (
+                    this
+                    .moveDirection === -1 && this.topGapNumber >= this.getTopGap(this.currentFloor - 1)));
             },
             getTopGap(floor) {
                 return 600 - floor * 30
             },
-            updateCurrentAndGoal() {
-                let tempFloor = this.goalFloor;
-                this.goalFloor = this.getNextGoal();
-                this.currentFloor = tempFloor;
+            computeMoveDirection() {
+                if (this.moveDirection === 1) {
+                    this.moveDirection = -1;
+                    for (let i = this.currentFloor - 1; i < this.floorNum; i++) {
+                        if (this.selectedFloor[i] === true) {
+                            this.moveDirection = 1;
+                            break;
+                        }
+                    }
+                } else {
+                    this.moveDirection = 1;
+                    for (let i = 0; i < this.currentFloor; i++) {
+                        if (this.selectedFloor[i] === true) {
+                            this.moveDirection = -1;
+                            break;
+                        }
+                    }
+                }
+            },
+
+            openTheDoor() {
+                setTimeout(() => {
+                    this.selectedFloor[this.currentFloor - 1] = false
+                    if (this.isBusy === false) {
+                        return;
+                    } else {
+                        this.moveOneFloor()
+                    }
+                    return;
+                }, 2000)
             }
         }
     }
