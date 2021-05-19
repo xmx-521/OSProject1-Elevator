@@ -2,7 +2,9 @@
     <div></div>
     <div class="bg-gray-100 shadow-2xl elevatorInside left">
         <div class="elevatorBoarderLeft left">
-            <div v-for="count in this.floorNum" :key="count" class="floorNumber">{{this.floorNum+1-count}}</div>
+            <div v-for="count in this.floorNum" :key="count" class="floorNumber"
+                :class="numberBackground(this.floorNum+1-count)">
+                {{this.floorNum+1-count}}</div>
         </div>
         <div class="floor left bg-gray-400">
             <div class="door left left-door"></div>
@@ -11,7 +13,7 @@
         <div class="elevatorBoarderRight right">
             <div v-for="count in this.floorNum/2" :key="count">
                 <el-button v-for="count2 in 2" :key="count2" size="mini" type="primary"
-                    :class="buttonBackground[this.floorNum+count2-count*2-1]" circle
+                    :class="buttonBackground(this.floorNum+count2-count*2-1)" circle
                     @click="selectFloor(this.floorNum+count2-count*2,$event)">{{this.floorNum+count2-count*2}}
                 </el-button>
             </div>
@@ -40,8 +42,7 @@
                 topGapNumber: 570,
                 doorGapNumber: 18.5,
                 selectedFloor: [...Array(20)].map(() => false),
-                moveDirection: 1,
-                buttonBackground: [...Array(20)].map(() => "white")
+                moveDirection: 1
             }
         },
         computed: {
@@ -72,11 +73,9 @@
                 this.clickHandler(event)
                 if (this.isBusy === false) {
                     this.selectedFloor[floor - 1] = true;
-                    this.buttonBackground[floor - 1] = "blue";
                     this.moveOneFloor();
                 } else {
                     this.selectedFloor[floor - 1] = true;
-                    this.buttonBackground[floor - 1] = "blue";
                 }
             },
 
@@ -159,7 +158,6 @@
                         if (this.doorGapNumber >= 18.5) {
                             clearInterval(vueTimer);
                             this.selectedFloor[this.currentFloor - 1] = false
-                            this.buttonBackground[this.currentFloor - 1] = "white"
                             if (this.isBusy === false) {
                                 return;
                             } else {
@@ -178,6 +176,14 @@
                     target = evt.target.parentNode;
                 }
                 target.blur();
+            },
+
+            buttonBackground(position) {
+                return this.selectedFloor[position] === false ? "white" : "blue"
+            },
+
+            numberBackground(floor) {
+                return this.currentFloor === floor ? "blue" : "bogus"
             }
         }
     }
@@ -256,7 +262,11 @@
         color: white;
         font-size: 16px;
         text-align: center;
-        line-height: center;
+        line-height: 30px;
+    }
+
+    .bogus {
+        background-color: unset;
     }
 
     .el-button,
@@ -295,5 +305,7 @@
         color: #606266
     }
 
-    .indicateLight {}
+    /* .indicateLight {
+        background-color: ;
+    } */
 </style>
