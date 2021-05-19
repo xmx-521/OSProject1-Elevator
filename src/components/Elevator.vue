@@ -6,9 +6,9 @@
                 :class="numberBackground(this.floorNum+1-count)">
                 {{this.floorNum+1-count}}</div>
         </div>
-        <div class="floor left bg-gray-400">
-            <div class="door left left-door"></div>
-            <div class="door right right-door"></div>
+        <div class="floor left bg-gray-400" :style="{'margin-top':topGap}">
+            <div class="door left " :style="{'margin-left':doorGap}"></div>
+            <div class="door right" :style="{'margin-right':doorGap}"></div>
         </div>
         <div class="elevatorBoarderRight right">
             <div v-for="count in this.floorNum/2" :key="count">
@@ -252,7 +252,6 @@
     .floor {
         width: 76px;
         height: 26px;
-        margin-top: v-bind(topGap);
         border: 2px solid black;
     }
 
@@ -290,14 +289,6 @@
 
     .black-font {
         color: #606266
-    }
-
-    .left-door {
-        margin-left: v-bind(doorGap);
-    }
-
-    .right-door {
-        margin-right: v-bind(doorGap);
     }
 
     .white {
