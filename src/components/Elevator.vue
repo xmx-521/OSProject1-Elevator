@@ -50,8 +50,10 @@
         props: {
             floorNum: {
                 type: Number,
-                default: 20
-            }
+                default: 20,
+            },
+            downRequests: Array,
+            upRequests: Array
         },
         data() {
             return {
@@ -59,6 +61,8 @@
                 topGapNumber: 570,
                 doorGapNumber: 19.5,
                 selectedFloor: [...Array(20)].map(() => false),
+                assignedDownRequests: [...Array(20)].map(() => false),
+                assignedUpRequests: [...Array(20)].map(() => false),
                 moveDirection: 1
             }
         },
@@ -66,7 +70,8 @@
             isBusy() {
                 let allUnSelected = true;
                 for (let i = 0; i < this.floorNum; i++) {
-                    if (this.selectedFloor[i] === true) {
+                    if (this.selectedFloor[i] === true || this.assignedUpRequests[i] === true || this
+                        .assignedDownRequests[i] === true) {
                         allUnSelected = false;
                         break;
                     }
@@ -91,6 +96,7 @@
             // console.log(this.moveDirection);
             // console.log(this.selectedFloor);
         },
+        emits: ['cancel'],
         methods: {
             selectFloor(floor, event) {
                 console.log(this.isBusy)
@@ -103,10 +109,35 @@
                 }
             },
 
+            dispatch(floor, direction) {
+                if (direction === 1) {
+                    if (this.isBusy === false) {
+                        this.assignedUpRequests[floor - 1] = true
+                        this.moveOneFloor();
+                    } else {
+                        this.assignedUpRequests[floor - 1] = true;
+                    }
+                } else {
+                    if (this.isBusy === false) {
+                        this.assignedDownRequests[floor - 1] = true
+                        this.moveOneFloor();
+                    } else {
+                        this.assignedDownRequests[floor - 1] = true;
+                    }
+                }
+            },
+
             moveOneFloor() {
-                this.computeMoveDirection()
-                if (this.selectedFloor[this.currentFloor - 1] === true) {
-                    this.openTheDoor()
+                this.computeMoveDirection();
+                if ((this.selectedFloor[this.currentFloor - 1] === true) || (this.upRequests[this
+                        .currentFloor - 1] === true) || (this
+                        .downRequests[this.currentFloor - 1] === true)) {
+                    if (this.upRequests[this.currentFloor - 1] === true) {
+                        this.moveDirection = 1;
+                    } else if (this.downRequests[this.currentFloor - 1] === true) {
+                        this.moveDirection = -1;
+                    }
+                    this.openTheDoor();
                 } else {
 
                     // Animation.
@@ -118,7 +149,11 @@
                             this.currentFloor = this.currentFloor + this.moveDirection;
                             console.log(this.currentFloor);
                             // If there is a request on this floor.
-                            if (this.selectedFloor[this.currentFloor - 1] === true) {
+                            if (this.selectedFloor[this.currentFloor - 1] === true || (this.upRequests[this
+                                    .currentFloor - 1] === true && this.moveDirection === 1) || (this
+                                    .downRequests[this.currentFloor - 1] === true && this.moveDirection ===
+                                    -1
+                                )) {
                                 this.openTheDoor()
                             } else {
                                 this.moveOneFloor()
@@ -129,11 +164,12 @@
                         this.topGapNumber = this.topGapNumber - this.moveDirection;
                         // console.log(this.moveDirection)
                         // console.log(this.topGapNumber)
-                    }, 20)
+                    }, 33)
                 }
             },
             arriveAnotherFloor() {
-                return ((this.moveDirection === 1 && this.topGapNumber <= this.getTopGap(this.currentFloor + 1)) || (
+                return ((this.moveDirection === 1 && this.topGapNumber <= this.getTopGap(this.currentFloor +
+                    1)) || (
                     this
                     .moveDirection === -1 && this.topGapNumber >= this.getTopGap(this.currentFloor - 1)));
             },
@@ -144,7 +180,8 @@
                 if (this.moveDirection === 1) {
                     this.moveDirection = -1;
                     for (let i = this.currentFloor - 1; i < this.floorNum; i++) {
-                        if (this.selectedFloor[i] === true) {
+                        if (this.selectedFloor[i] === true || this.assignedUpRequests[i] === true || this
+                            .assignedDownRequests[i] === true) {
                             this.moveDirection = 1;
                             break;
                         }
@@ -152,7 +189,8 @@
                 } else {
                     this.moveDirection = 1;
                     for (let i = 0; i < this.currentFloor; i++) {
-                        if (this.selectedFloor[i] === true) {
+                        if (this.selectedFloor[i] === true || this.assignedUpRequests[i] === true || this
+                            .assignedDownRequests[i] === true) {
                             this.moveDirection = -1;
                             break;
                         }
@@ -163,7 +201,7 @@
             openTheDoor() {
                 setTimeout(() => {
                     let vueTimer = setInterval(() => {
-                        if (this.doorGapNumber <= 1) {
+                        if (this.doorGapNumber <= 0.5) {
                             clearInterval(vueTimer);
                             this.closeTheDoor();
                         }
@@ -181,15 +219,33 @@
                     let vueTimer = setInterval(() => {
                         if (this.doorGapNumber >= 19.5) {
                             clearInterval(vueTimer);
-                            this.selectedFloor[this.currentFloor - 1] = false
+                            this.selectedFloor[this.currentFloor - 1] = false;
+                            if (this.upRequests[this.currentFloor - 1] === true && (this
+                                    .moveDirection === 1)) {
+                                this.$emit("cancel", {
+                                    floor: this.currentFloor,
+                                    direction: 1,
+                                    state: false
+                                })
+                            }
+                            if (this.downRequests[this.currentFloor - 1] === true && (this
+                                    .moveDirection === -1)) {
+                                this.$emit("cancel", {
+                                    floor: this.currentFloor,
+                                    direction: -1,
+                                    state: false
+                                })
+                            }
                             if (this.isBusy === false) {
                                 return;
                             } else {
-                                this.moveOneFloor();
+                                setTimeout(() => {
+                                    this.moveOneFloor();
+                                }, 500)
                             }
                         }
                         this.doorGapNumber = this.doorGapNumber + 0.5;
-                    }, 20)
+                    }, 25)
                 }, 2000)
             },
 
@@ -216,6 +272,43 @@
                 } else {
                     return "arrowUnSelected";
                 }
+            },
+
+            console() {
+                console.log('我是子组件的方法');
+            },
+
+            getFarestFloor(direction) {
+                if (direction === -1) {
+                    let min = this.currentFloor;
+                    for (let i = 0; i < this.floorNum; i++) {
+                        if (this.selectedFloor[i] === true || this.assignedUpRequests[i] === true || this
+                            .assignedDownRequests[i] === true) {
+                            min = i + 1;
+                        }
+                    }
+                    return min;
+                }
+                if (direction === 1) {
+                    let max = this.currentFloor;
+                    for (let i = this.floorNum - 1; i >= 0; i--) {
+                        if (this.selectedFloor[i] === true || this.assignedUpRequests[i] === true || this
+                            .assignedDownRequests[i] === true) {
+                            max = i + 1;
+                        }
+                    }
+                    return max;
+                }
+            },
+
+            getStopTimes(low, up) {
+                let sum = 0;
+                for (let i = low - 1; i < up; i++) {
+                    if (this.selectedFloor[i] === true) {
+                        sum++;
+                    }
+                }
+                return sum;
             }
         }
     }
@@ -382,6 +475,5 @@
         --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgba(245, 158, 11, 0));
         --tw-gradient-stops: var(--tw-gradient-from), #ef4444, var(--tw-gradient-to, rgba(239, 68, 68, 0));
         --tw-gradient-to: #ec4899;
-
     }
 </style>
