@@ -34,8 +34,8 @@
                     </el-button>
                 </div>
                 <div>
-                    <el-button type="success" icon="el-icon-phone" circle></el-button>
-                    <el-button type="danger" icon="el-icon-message-solid" circle></el-button>
+                    <el-button type="success" icon="el-icon-phone" circle @click="call"></el-button>
+                    <el-button type="danger" icon="el-icon-message-solid" circle @click="ringing"> </el-button>
                 </div>
             </div>
         </div>
@@ -309,6 +309,14 @@
                     }
                 }
                 return sum;
+            },
+
+            call() {
+                alert("拨打电话☎️，呼叫管理员")
+            },
+
+            ringing() {
+                alert("按下警铃🔔，电梯运行终止")
             }
         }
     }
